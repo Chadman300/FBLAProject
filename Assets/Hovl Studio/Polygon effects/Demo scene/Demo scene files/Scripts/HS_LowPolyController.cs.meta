@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 9a7ef75715c34bb4b838472e036b1bd6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 216588
+  packageName: Polygon particle effects
+  packageVersion: 1.0
+  assetPath: Assets/Hovl Studio/Polygon effects/Demo scene/Demo scene files/Scripts/HS_LowPolyController.cs
+  uploadId: 497971

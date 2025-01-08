@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: aa8ed4fefc7bc334692826364cf5f449
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 216588
+  packageName: Polygon particle effects
+  packageVersion: 1.0
+  assetPath: Assets/Hovl Studio/Polygon effects/Demo scene/Demo scene files/Scripts/HS_ReceiveHit.cs
+  uploadId: 497971

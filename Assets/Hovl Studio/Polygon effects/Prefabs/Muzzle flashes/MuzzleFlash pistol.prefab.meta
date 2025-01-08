@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 26b6e21e7118c5f4a98fe77a10c43aca
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 216588
+  packageName: Polygon particle effects
+  packageVersion: 1.0
+  assetPath: Assets/Hovl Studio/Polygon effects/Prefabs/Muzzle flashes/MuzzleFlash
+    pistol.prefab
+  uploadId: 497971
