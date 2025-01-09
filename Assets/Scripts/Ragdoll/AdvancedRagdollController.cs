@@ -15,7 +15,6 @@ public class AdvancedRagdollController : MonoBehaviour
     [SerializeField] private float speed = 250; //forward back speed
     [SerializeField] private float rotateTourqe = 15; //left right speed
     [SerializeField] private bool mouseLook = true;
-    [SerializeField] private float lookTourqe = 200; //left right speed
     [SerializeField] private float jumpForce = 3000;
     [Range(1, 20)][SerializeField] private float lungeForce = 2;
     public bool isGrounded = false;
@@ -23,9 +22,10 @@ public class AdvancedRagdollController : MonoBehaviour
     private float rotationY = 0;
 
     [Header("Mouse Look")]
+    [SerializeField] private float lookTourqe = 200; //left right speed
     [SerializeField] private Camera playerCamera;
     [SerializeField] private LayerMask lookLayer;
-    private Quaternion targetLookRotation;
+    [SerializeField] private bool lockYAxis = true;
 
     [Header("Physics Parameters")]
     [SerializeField] private int limbCollisionLayer = 6;
@@ -159,6 +159,9 @@ public class AdvancedRagdollController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if(mouseLook && isGrounded)
+            RayRotate();
+
         Balance();
 
         ApplyFinalMovements();
@@ -168,20 +171,6 @@ public class AdvancedRagdollController : MonoBehaviour
     {
         mouseP.x += Input.GetAxis("Mouse X") * lookTourqe;
         mouseP.y -= Input.GetAxis("Mouse Y") * lookTourqe;
-
-        //mouse point casted to world point
-        if(mouseLook)
-        {
-            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-
-            if(Physics.Raycast(ray, out RaycastHit hit, float.MaxValue, lookLayer))
-            {
-                Vector3 targetPoint = hit.point;
-                Vector3 direction = targetPoint - hipsRb.transform.position;
-                targetLookRotation = Quaternion.LookRotation(direction);
-                Debug.DrawLine(hipsRb.transform.position, targetPoint);
-            }
-        }
     }
 
     private void ApplyFinalMovements()
@@ -204,15 +193,10 @@ public class AdvancedRagdollController : MonoBehaviour
             hipsRb.linearVelocity = new Vector3(moveVel.x + sideMoveVel.x, hipsRb.linearVelocity.y, moveVel.z + sideMoveVel.z);
 
             //rotation
-            if(mouseLook)
-            {
-                //hipJoint.targetRotation = Quaternion.Euler(0, -mouseP.x * Time.deltaTime, 0); //mouse
-                hipJoint.targetRotation = Quaternion.Euler(0f, targetLookRotation.y, 0f); //mouse
-            }
-            else
+            if(!mouseLook)
             {
                 rotationY -= (currentInput.y * rotateTourqe) * Time.deltaTime;
-                hipJoint.targetRotation = Quaternion.Euler(0, rotationY, 0); //keys
+                //hipJoint.targetRotation = Quaternion.Euler(0, rotationY, 0); //keys
             }
 
             //Jumping
@@ -334,7 +318,8 @@ public class AdvancedRagdollController : MonoBehaviour
         }
 
         //move
-        currentInput = new Vector2(speed * Input.GetAxis("Vertical"), (speed / 2) * Input.GetAxis("Horizontal"));
+        float horizonalMultiplyer = mouseLook ? speed / 2 : rotateTourqe;
+        currentInput = new Vector2(speed * Input.GetAxis("Vertical"), horizonalMultiplyer * Input.GetAxis("Horizontal"));
         currentInputRaw = new Vector2(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"));
 
         if (isGrounded)
@@ -561,18 +546,45 @@ public class AdvancedRagdollController : MonoBehaviour
     private void Balance()
     {
         //balance using upright tourqe
-        var balancePercent = Vector3.Angle(hipsRb.transform.up,
-                                                         Vector3.up) / 180;
+        var balancePercent = Vector3.Angle(hipsRb.transform.up, Vector3.up) / 180;
         balancePercent = uprightTorqueFunction.Evaluate(balancePercent);
-        var rot = Quaternion.FromToRotation(hipsRb.transform.up,
-                                             Vector3.up).normalized;
+        var rot = Quaternion.FromToRotation(hipsRb.transform.up, Vector3.up).normalized;
+        //rot = new Quaternion(rot.x + targetLookRotation.x, rot.y + targetLookRotation.y, rot.z + targetLookRotation.z, rot.w + targetLookRotation.w);
 
-        hipsRb.AddTorque(new Vector3(rot.x, rot.y, rot.z)
-                                                    * uprightTorque * balancePercent);
+        hipsRb.AddTorque(new Vector3(rot.x, rot.y, rot.z) * uprightTorque * balancePercent);
 
         var directionAnglePercent = Vector3.SignedAngle(hipsRb.transform.forward,
                             TargetDirection, Vector3.up) / 180;
         hipsRb.AddRelativeTorque(0, directionAnglePercent * rotationTorque, 0);
+    }
+
+    private void RayRotate()
+    {
+        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, float.MaxValue, lookLayer))
+        {
+            Vector3 targetPoint = hit.point;
+            Vector3 direction = targetPoint - transform.position;
+
+            if (lockYAxis)
+            {
+                direction.y = 0f;
+            }
+
+            Quaternion targetRotaion = Quaternion.LookRotation(direction);
+            targetRotaion.w = -targetRotaion.w;
+
+            //hipJoint.targetRotation = targetRotaion;
+            hipJoint.targetRotation = Quaternion.Slerp(hipJoint.targetRotation, targetRotaion, lookTourqe * Time.deltaTime);
+
+            //Debug.DrawLine(transform.position, hit.point, Color.green);
+        }
+    }
+
+    private Vector3 vectorM(Vector3 v1, Vector3 v2)
+    {
+        return new Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
     }
 
     private void RagDoll(bool ragdoll)
